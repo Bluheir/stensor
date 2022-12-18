@@ -606,7 +606,18 @@ impl<T: AddAssign> AddAssign for DTensor<T> {
         assert_eq!(self.dims(), rhs.dims());
 
         self.iter_mut()
-            .zip(rhs.contents.into_iter())
+            .zip(rhs.into_iter())
+            .for_each(|(a, b)| *a += b);
+    }
+}
+impl<T> AddAssign<&DTensor<T>> for DTensor<T> 
+    where for<'a> T : AddAssign<&'a T>
+{
+    fn add_assign(&mut self, rhs: &DTensor<T>) {
+        assert_eq!(self.dims(), rhs.dims());
+
+        self.iter_mut()
+            .zip(rhs.into_iter())
             .for_each(|(a, b)| *a += b);
     }
 }
@@ -672,6 +683,59 @@ impl<T : Clone + AddAssign> AddAssign<T> for DTensor<T>
             .for_each(|a| *a += rhs.clone())
     }
 }
+impl<T> AddAssign<&T> for DTensor<T>
+    where for<'a> T : AddAssign<&'a T>
+{
+    fn add_assign(&mut self, rhs: &T) {
+        self.iter_mut()
+        .for_each(|a| *a += rhs)
+    }
+}
+
+impl<T> Add<T> for DTensor<T> 
+    where T : Clone + Add<T, Output = T>
+{
+    type Output = DTensor<T>;
+
+    fn add(self, rhs: T) -> Self::Output {
+        let dims = self.dims.clone();
+
+        Self::Output::new(self.into_iter().map(|a| a + rhs.clone()).collect(), dims)
+    }
+}
+impl<T : Clone> Add<T> for &DTensor<T> 
+    where for<'a> &'a T : Add<T, Output = T>
+{
+    type Output = DTensor<T>;
+
+    fn add(self, rhs: T) -> Self::Output {
+        let dims = self.dims.clone();
+
+        Self::Output::new(self.into_iter().map(|a| a + rhs.clone()).collect(), dims)
+    }
+}
+impl<T> Add<&T> for DTensor<T> 
+    where for<'a> T : Add<&'a T, Output = T>
+{
+    type Output = DTensor<T>;
+
+    fn add(self, rhs: &T) -> Self::Output {
+        let dims = self.dims.clone();
+
+        Self::Output::new(self.into_iter().map(|a| a + rhs).collect(), dims)
+    }
+}
+impl<T> Add<&T> for &DTensor<T> 
+    where for<'a> &'a T : Add<&'a T, Output = T>
+{
+    type Output = DTensor<T>;
+
+    fn add(self, rhs: &T) -> Self::Output {
+        let dims = self.dims.clone();
+
+        Self::Output::new(self.into_iter().map(|a| a + rhs).collect(), dims)
+    }
+}
 
 // Sub implementation
 impl<T : SubAssign> SubAssign for DTensor<T> {
@@ -679,7 +743,18 @@ impl<T : SubAssign> SubAssign for DTensor<T> {
         assert_eq!(self.dims(), rhs.dims());
 
         self.iter_mut()
-            .zip(rhs.contents.into_iter())
+            .zip(rhs.into_iter())
+            .for_each(|(a, b)| *a -= b);
+    }
+}
+impl<T> SubAssign<&DTensor<T>> for DTensor<T> 
+    where for<'a> T : SubAssign<&'a T>
+{
+    fn sub_assign(&mut self, rhs: &DTensor<T>) {
+        assert_eq!(self.dims(), rhs.dims());
+
+        self.iter_mut()
+            .zip(rhs.into_iter())
             .for_each(|(a, b)| *a -= b);
     }
 }
@@ -734,6 +809,68 @@ impl<T> Sub<&DTensor<T>> for DTensor<T>
         let dims = self.dims.clone();
 
         Self::Output::new(self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a - b).collect(), dims)
+    }
+}
+
+// Scalar subtraction
+impl<T : Clone + SubAssign> SubAssign<T> for DTensor<T> 
+{
+    fn sub_assign(&mut self, rhs: T) {
+        self.iter_mut()
+            .for_each(|a| *a -= rhs.clone())
+    }
+}
+impl<T> SubAssign<&T> for DTensor<T>
+    where for<'a> T : SubAssign<&'a T>
+{
+    fn sub_assign(&mut self, rhs: &T) {
+        self.iter_mut()
+        .for_each(|a| *a -= rhs)
+    }
+}
+
+impl<T> Sub<T> for DTensor<T> 
+    where T : Clone + Sub<T, Output = T>
+{
+    type Output = DTensor<T>;
+
+    fn sub(self, rhs: T) -> Self::Output {
+        let dims = self.dims.clone();
+
+        Self::Output::new(self.into_iter().map(|a| a - rhs.clone()).collect(), dims)
+    }
+}
+impl<T : Clone> Sub<T> for &DTensor<T> 
+    where for<'a> &'a T : Sub<T, Output = T>
+{
+    type Output = DTensor<T>;
+
+    fn sub(self, rhs: T) -> Self::Output {
+        let dims = self.dims.clone();
+
+        Self::Output::new(self.into_iter().map(|a| a - rhs.clone()).collect(), dims)
+    }
+}
+impl<T> Sub<&T> for DTensor<T> 
+    where for<'a> T : Sub<&'a T, Output = T>
+{
+    type Output = DTensor<T>;
+
+    fn sub(self, rhs: &T) -> Self::Output {
+        let dims = self.dims.clone();
+
+        Self::Output::new(self.into_iter().map(|a| a - rhs).collect(), dims)
+    }
+}
+impl<T> Sub<&T> for &DTensor<T> 
+    where for<'a> &'a T : Sub<&'a T, Output = T>
+{
+    type Output = DTensor<T>;
+
+    fn sub(self, rhs: &T) -> Self::Output {
+        let dims = self.dims.clone();
+
+        Self::Output::new(self.into_iter().map(|a| a - rhs).collect(), dims)
     }
 }
 
